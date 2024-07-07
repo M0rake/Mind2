@@ -195,8 +195,8 @@ data = np.log(data)
 
 # test_data = [20, 19.5, 24, 18, 19, 15, 16.5, 17, 14, 16, 12, 14.5, 15, 10, 14, 14.5, 9, 12, 5, 9, 8.5, 2]
 num = 200
-test_data1 = data['2. high'].head(num).reset_index(drop=True)
-test_data2 = data['3. low'].head(num).reset_index(drop=True)
+test_data1 = data['1. open'].head(num).reset_index(drop=True)
+test_data2 = data['4. close'].head(num).reset_index(drop=True)
 
 # test_data = test_data[::-1]
 
