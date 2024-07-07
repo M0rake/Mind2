@@ -3,9 +3,14 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 import pandas as pd
 from alpha_vantage.timeseries import TimeSeries
+from alpha_vantage.foreignexchange import ForeignExchange
 
 
 #THIS IS A REGION AND NOT A LINE, KEEP THAT IN MIND
+
+def add_moving_average(df: pd.DataFrame, window: int) -> pd.DataFrame:
+    df['MA'] = df['3. low'].rolling(window=window).mean()
+    return df
 
 def resistance_line_finder_bearish(data1, data2):
     vec1 = []
@@ -168,8 +173,17 @@ ts = TimeSeries(key=api_key, output_format='pandas')
 # data, meta_data = ts.get_intraday('DIA', interval='60min')
 data, meta_data = ts.get_intraday('EURUSD', interval='60min')
 
+# fx = ForeignExchange(key=api_key)
+#
+# # Fetch daily data
+# data, meta_data = fx.get_currency_exchange_daily(from_symbol='EUR', to_symbol='USD')
+
 # Convert 'date' column to datetime and set it as index
 # data['date'] = data.index.astype('datetime64[s]')
+
+# df = pd.DataFrame.from_dict(data, orient='index')
+# df.index = pd.to_datetime(df.index)
+# data = df.astype(float)
 
 data.fillna(0, inplace=True)
 
@@ -180,14 +194,24 @@ data = data.apply(pd.to_numeric, errors='coerce')
 data = np.log(data)
 
 # test_data = [20, 19.5, 24, 18, 19, 15, 16.5, 17, 14, 16, 12, 14.5, 15, 10, 14, 14.5, 9, 12, 5, 9, 8.5, 2]
-num = 100
+num = 200
 test_data1 = data['2. high'].head(num).reset_index(drop=True)
 test_data2 = data['3. low'].head(num).reset_index(drop=True)
 
 # test_data = test_data[::-1]
 
+coefficients = []
 
-coefficients = resistance_line_finder_bullish(test_data1, test_data2)
+data = add_moving_average(data, 20)
+
+if data['MA'].iloc[-1] - data['3. low'].iloc[-1] < 0:
+    coefficients = resistance_line_finder_bearish(test_data1, test_data2)
+    print("downward trend")
+elif data['MA'].iloc[-1] - data['3. low'].iloc[-1] > 0:
+    coefficients = resistance_line_finder_bullish(test_data1, test_data2)
+    print("upward trend")
+else:
+    print("The market is trending!!")
 
 # coefficients = calculate_trendlines(data)
 

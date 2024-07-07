@@ -1,30 +1,31 @@
-from alpha_vantage.timeseries import TimeSeries
-import numpy as np
 import pandas as pd
+from alpha_vantage.foreignexchange import ForeignExchange
 
-api_key = "F5L80GN4QX59LI4P"
+# Your Alpha Vantage API key
+api_key = 'YOUR_API_KEY'
 
-ts = TimeSeries(key=api_key, output_format='pandas')
+# Create a ForeignExchange object
+fx = ForeignExchange(key=api_key)
 
-# Get intraday data
-data, meta_data = ts.get_intraday('EURUSD', interval='5min')
+# Fetch daily data
+data, meta_data = fx.get_currency_exchange_daily(from_symbol='EUR', to_symbol='USD')
 
-# Convert 'date' column to datetime and set it as index
-data['date'] = data.index.astype('datetime64[s]')
+# Convert to DataFrame for easier manipulation
+df = pd.DataFrame.from_dict(data, orient='index')
+df.index = pd.to_datetime(df.index)
+df = df.astype(float)
 
-data.fillna(0, inplace=True)
+# Sort the DataFrame by date to ensure the most recent data is at the end
+df = df.sort_index()
 
-# Convert non-numeric values to numeric format (if possible)
-data = data.apply(pd.to_numeric, errors='coerce')
+# Specify the start date
+start_date = '2021-05-15'
 
-# Apply natural logarithm to numerical columns
-data = np.log(data)
-#
-# data.to_csv('data.txt', sep='\t', index=False)
-# Reset the index and drop the existing index column
-data_reset_index = data.reset_index(drop=True)
+# Filter the DataFrame from the specified start date
+df_filtered = df.loc[start_date:]
 
-# Extract the '2. high' column and convert its values to float
-high_values = data_reset_index['2. high'].head().astype(float)
+# Optional: Limit to the most recent 200 entries
+df_recent_200 = df_filtered.tail(200)
 
-print(high_values)
+# Display the filtered DataFrame
+print(df_recent_200)
