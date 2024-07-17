@@ -1,10 +1,3 @@
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as plt
-from alpha_vantage.timeseries import TimeSeries
-
-
 def calculate_macd(df, short_window=12, long_window=26):
     closing_price = '4. close'
     if closing_price not in df.columns:
@@ -30,22 +23,3 @@ def calculate_macd(df, short_window=12, long_window=26):
     df[macd_col] = df[ema_short_col] - df[ema_long_col]
 
     return df
-
-
-api_key = "F5L80GN4QX59LI4P"
-
-ts = TimeSeries(key=api_key, output_format='pandas')
-
-
-data, meta_data = ts.get_intraday('EURUSD', interval='60min')
-
-data.fillna(0, inplace=True)
-
-data = data.apply(pd.to_numeric, errors='coerce')
-
-data = np.log(data)
-
-data = calculate_macd(data.head())
-
-print(data)
-

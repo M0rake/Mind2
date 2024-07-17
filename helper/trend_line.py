@@ -8,8 +8,6 @@ from alpha_vantage.foreignexchange import ForeignExchange
 
 #THIS IS A REGION AND NOT A LINE, KEEP THAT IN MIND
 
-import pandas as pd
-
 
 def fibonacci_retracement(df, direction):
     # Get the high and low prices
@@ -197,82 +195,82 @@ def resistance_line_finder_bullish(data1, data2):
 
     return sorted(answer, key=lambda x: x[0], reverse=True)
 
-
-api_key = "F5L80GN4QX59LI4P"
-
-ts = TimeSeries(key=api_key, output_format='pandas')
-
-# Get intraday data
-data, meta_data = ts.get_intraday('DIA', interval='60min')
-# data, meta_data = ts.get_intraday('EURUSD', interval='60min')
-
-# fx = ForeignExchange(key=api_key)
 #
-# # Fetch daily data
-# data, meta_data = fx.get_currency_exchange_daily(from_symbol='EUR', to_symbol='USD')
-
-# Convert 'date' column to datetime and set it as index
-# data['date'] = data.index.astype('datetime64[s]')
-
-# df = pd.DataFrame.from_dict(data, orient='index')
-# df.index = pd.to_datetime(df.index)
-# data = df.astype(float)
-
-data.fillna(0, inplace=True)
-
-# Convert non-numeric values to numeric format (if possible)
-data = data.apply(pd.to_numeric, errors='coerce')
-
-# Apply natural logarithm to numerical columns
-data = np.log(data)
-
-# test_data = [20, 19.5, 24, 18, 19, 15, 16.5, 17, 14, 16, 12, 14.5, 15, 10, 14, 14.5, 9, 12, 5, 9, 8.5, 2]
-num = 200
-test_data1 = data['1. open'].head(num).reset_index(drop=True).head(20)
-test_data2 = data['4. close'].head(num).reset_index(drop=True).head(20)
-
-# test_data = test_data[::-1]
-
-coefficients = []
-
-data = add_moving_average(data, 20)
-
-levels = []
-
-if data['MA-DIFF'].head(20).mean() < 0:
-    coefficients = resistance_line_finder_bearish(test_data1.head(20), test_data2.head(20))
-    levels = fibonacci_retracement(data.head(num).reset_index(drop=True).head(50), -1)
-    print("downward trend")
-elif data['MA-DIFF'].head(20).mean() > 0:
-    coefficients = resistance_line_finder_bullish(test_data1.head(20), test_data2.head(20))
-    levels = fibonacci_retracement(data.head(num).reset_index(drop=True).head(50), 1)
-    print("upward trend")
-else:
-    print("The market is trending!!")
-
-# coefficients = calculate_trendlines(data)
-
-# Plotting the test_data
-plt.plot(test_data1, label='Test Data1')
-plt.plot(test_data2, label='Test Data2')
-
-# # Plotting the lines
-# for i, coef in enumerate(coefficients):
-#     c, m = coef
-#     line = [m * x + c for x in range(len(test_data1))]
+# api_key = "F5L80GN4QX59LI4P"
+#
+# ts = TimeSeries(key=api_key, output_format='pandas')
+#
+# # Get intraday data
+# data, meta_data = ts.get_intraday('DIA', interval='60min')
+# # data, meta_data = ts.get_intraday('EURUSD', interval='60min')
+#
+# # fx = ForeignExchange(key=api_key)
+# #
+# # # Fetch daily data
+# # data, meta_data = fx.get_currency_exchange_daily(from_symbol='EUR', to_symbol='USD')
+#
+# # Convert 'date' column to datetime and set it as index
+# # data['date'] = data.index.astype('datetime64[s]')
+#
+# # df = pd.DataFrame.from_dict(data, orient='index')
+# # df.index = pd.to_datetime(df.index)
+# # data = df.astype(float)
+#
+# data.fillna(0, inplace=True)
+#
+# # Convert non-numeric values to numeric format (if possible)
+# data = data.apply(pd.to_numeric, errors='coerce')
+#
+# # Apply natural logarithm to numerical columns
+# data = np.log(data)
+#
+# # test_data = [20, 19.5, 24, 18, 19, 15, 16.5, 17, 14, 16, 12, 14.5, 15, 10, 14, 14.5, 9, 12, 5, 9, 8.5, 2]
+# num = 200
+# test_data1 = data['1. open'].head(num).reset_index(drop=True).head(20)
+# test_data2 = data['4. close'].head(num).reset_index(drop=True).head(20)
+#
+# # test_data = test_data[::-1]
+#
+# coefficients = []
+#
+# data = add_moving_average(data, 20)
+#
+# levels = []
+#
+# if data['MA-DIFF'].head(20).mean() < 0:
+#     coefficients = resistance_line_finder_bearish(test_data1.head(20), test_data2.head(20))
+#     levels = fibonacci_retracement(data.head(num).reset_index(drop=True).head(50), -1)
+#     print("downward trend")
+# elif data['MA-DIFF'].head(20).mean() > 0:
+#     coefficients = resistance_line_finder_bullish(test_data1.head(20), test_data2.head(20))
+#     levels = fibonacci_retracement(data.head(num).reset_index(drop=True).head(50), 1)
+#     print("upward trend")
+# else:
+#     print("The market is trending!!")
+#
+# # coefficients = calculate_trendlines(data)
+#
+# # Plotting the test_data
+# plt.plot(test_data1, label='Test Data1')
+# plt.plot(test_data2, label='Test Data2')
+#
+# # # Plotting the lines
+# # for i, coef in enumerate(coefficients):
+# #     c, m = coef
+# #     line = [m * x + c for x in range(len(test_data1))]
+# #     plt.plot(line, label=f'Line {i + 1}')
+#
+# # Plotting the levels
+# for i, coef in enumerate(levels):
+#     c = coef
+#     line = [c for x in range(len(test_data1))]
 #     plt.plot(line, label=f'Line {i + 1}')
-
-# Plotting the levels
-for i, coef in enumerate(levels):
-    c = coef
-    line = [c for x in range(len(test_data1))]
-    plt.plot(line, label=f'Line {i + 1}')
-
-# Adding labels and legend
-plt.xlabel('Index')
-plt.ylabel('Value')
-plt.title('Line Graphs')
-plt.legend()
-
-# Display the plot
-plt.show()
+#
+# # Adding labels and legend
+# plt.xlabel('Index')
+# plt.ylabel('Value')
+# plt.title('Line Graphs')
+# plt.legend()
+#
+# # Display the plot
+# plt.show()
