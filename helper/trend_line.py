@@ -8,9 +8,42 @@ from alpha_vantage.foreignexchange import ForeignExchange
 
 #THIS IS A REGION AND NOT A LINE, KEEP THAT IN MIND
 
+import pandas as pd
+
+
+def fibonacci_retracement(df, direction):
+    # Get the high and low prices
+    high_price = df['4. close'].max()
+    low_price = df['4. close'].min()
+
+    # Calculate Fibonacci levels
+    diff = high_price - low_price
+    levels = []
+
+    if direction == 1:  # Upward trend
+        levels.append(high_price - 0.236 * diff)
+        levels.append(high_price - 0.382 * diff)
+        levels.append(high_price - 0.5 * diff)
+        levels.append(high_price - 0.618 * diff)
+        levels.append(high_price - 0.764 * diff)
+        levels.append(low_price)
+    elif direction == -1:  # Downward trend
+        levels.append(low_price + 0.236 * diff)
+        levels.append(low_price + 0.382 * diff)
+        levels.append(low_price + 0.5 * diff)
+        levels.append(low_price + 0.618 * diff)
+        levels.append(low_price + 0.764 * diff)
+        levels.append(high_price)
+
+    return levels
+
+
 def add_moving_average(df: pd.DataFrame, window: int) -> pd.DataFrame:
-    df['MA'] = df['3. low'].rolling(window=window).mean()
+    var = '4. close'
+    df['MA'] = df[var][::-1].rolling(window=window).mean()[::-1]
+    df['MA-DIFF'] = df['MA'] - df[var]
     return df
+
 
 def resistance_line_finder_bearish(data1, data2):
     vec1 = []
@@ -170,8 +203,8 @@ api_key = "F5L80GN4QX59LI4P"
 ts = TimeSeries(key=api_key, output_format='pandas')
 
 # Get intraday data
-# data, meta_data = ts.get_intraday('DIA', interval='60min')
-data, meta_data = ts.get_intraday('EURUSD', interval='60min')
+data, meta_data = ts.get_intraday('DIA', interval='60min')
+# data, meta_data = ts.get_intraday('EURUSD', interval='60min')
 
 # fx = ForeignExchange(key=api_key)
 #
@@ -195,8 +228,8 @@ data = np.log(data)
 
 # test_data = [20, 19.5, 24, 18, 19, 15, 16.5, 17, 14, 16, 12, 14.5, 15, 10, 14, 14.5, 9, 12, 5, 9, 8.5, 2]
 num = 200
-test_data1 = data['1. open'].head(num).reset_index(drop=True)
-test_data2 = data['4. close'].head(num).reset_index(drop=True)
+test_data1 = data['1. open'].head(num).reset_index(drop=True).head(20)
+test_data2 = data['4. close'].head(num).reset_index(drop=True).head(20)
 
 # test_data = test_data[::-1]
 
@@ -204,11 +237,15 @@ coefficients = []
 
 data = add_moving_average(data, 20)
 
-if data['MA'].iloc[-1] - data['3. low'].iloc[-1] < 0:
-    coefficients = resistance_line_finder_bearish(test_data1, test_data2)
+levels = []
+
+if data['MA-DIFF'].head(20).mean() < 0:
+    coefficients = resistance_line_finder_bearish(test_data1.head(20), test_data2.head(20))
+    levels = fibonacci_retracement(data.head(num).reset_index(drop=True).head(50), -1)
     print("downward trend")
-elif data['MA'].iloc[-1] - data['3. low'].iloc[-1] > 0:
-    coefficients = resistance_line_finder_bullish(test_data1, test_data2)
+elif data['MA-DIFF'].head(20).mean() > 0:
+    coefficients = resistance_line_finder_bullish(test_data1.head(20), test_data2.head(20))
+    levels = fibonacci_retracement(data.head(num).reset_index(drop=True).head(50), 1)
     print("upward trend")
 else:
     print("The market is trending!!")
@@ -219,10 +256,16 @@ else:
 plt.plot(test_data1, label='Test Data1')
 plt.plot(test_data2, label='Test Data2')
 
-# Plotting the lines
-for i, coef in enumerate(coefficients):
-    c, m = coef
-    line = [m * x + c for x in range(len(test_data1))]
+# # Plotting the lines
+# for i, coef in enumerate(coefficients):
+#     c, m = coef
+#     line = [m * x + c for x in range(len(test_data1))]
+#     plt.plot(line, label=f'Line {i + 1}')
+
+# Plotting the levels
+for i, coef in enumerate(levels):
+    c = coef
+    line = [c for x in range(len(test_data1))]
     plt.plot(line, label=f'Line {i + 1}')
 
 # Adding labels and legend

@@ -4,6 +4,7 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 from alpha_vantage.timeseries import TimeSeries
 
+
 def calculate_macd(df, short_window=12, long_window=26):
     closing_price = '4. close'
     if closing_price not in df.columns:
